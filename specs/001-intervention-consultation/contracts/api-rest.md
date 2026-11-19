@@ -146,7 +146,11 @@ event: intervention
 data: {"interventionId":"3f0c…","type":"REPONSE"}
 ```
 
-`type` vaut `CREATION`, `REPONSE`, `CLOTURE`, `SELECTION`, `ETAPE` ou `FIN`. Le message ne porte
+`type` vaut `CREATION`, `REPONSE`, `CLOTURE`, `SELECTION`, `ETAPE` ou `FIN`.
+
+Toutes les 5 s, le serveur envoie aussi `event: ping` (données vides). Sans aucun message pendant 8 s,
+le client considère la connexion comme morte. C'est le cas d'un serveur arrêté derrière le proxy Vite,
+qui garde la connexion ouverte. Le client passe alors en repli et se reconnecte. Le message ne porte
 **pas** l'état : à chaque message, le client recharge sa vue (`/api/interventions/courante` ou
 `/api/techniciens/{nom}/vue`). Un message reçu en double est donc sans effet. Si le flux est en
 erreur, le client recharge sa vue toutes les 2 secondes jusqu'à la reconnexion.

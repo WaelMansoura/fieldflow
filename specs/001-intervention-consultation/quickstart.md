@@ -5,7 +5,7 @@ dans [data-model.md](./data-model.md).
 
 ## Prérequis
 
-- Java 21, Maven 3.9+
+- Java 21 (Maven n'est pas nécessaire : le wrapper `backend/mvnw` télécharge Maven 3.9.16)
 - Node.js 20+ et npm
 - Docker Desktop (PostgreSQL, conteneurs Dapr, Testcontainers)
 - Dapr CLI ; runtime installé une fois avec `dapr init`. Vérifier que les conteneurs `dapr_redis`,
@@ -25,7 +25,8 @@ Délai de consultation : `fieldflow.consultation.delai` dans `backend/src/main/r
 ```powershell
 docker compose up -d                                   # PostgreSQL 16
 cd backend
-dapr run --app-id fieldflow --app-port 8080 --dapr-grpc-port 50001 -- mvn spring-boot:run
+dapr run --app-id fieldflow --app-port 8080 --dapr-grpc-port 50001 -- .\mvnw.cmd spring-boot:run
+# arrêt (application et sidecar) : Ctrl+C, ou depuis un autre terminal : dapr stop --app-id fieldflow
 # autre terminal
 cd frontend; npm install; npm run dev                  # http://localhost:5173
 ```
@@ -37,14 +38,17 @@ technicien (Jean, Jacques, Pierre) et un onglet chef.
 
 ```powershell
 cd backend
-mvn test      # InterventionRules (unitaires) + intégration API/persistance (Testcontainers)
+.\mvnw.cmd test   # InterventionRules (unitaires) + intégration API/persistance (Testcontainers)
 ```
 
-Attendu : tous verts. Docker doit tourner pour Testcontainers.
+Attendu : tous verts. Docker doit tourner pour Testcontainers ; Dapr n'est pas nécessaire (profil `test`).
 
 ---
 
 ## Étape 0 — Hello world Dapr (avant tout le reste)
+
+> **Validée le 2026-11-19 (T009), code retiré (T077).** Résultats dans research.md (« Points à
+> confirmer »). Les étapes ci-dessous sont gardées pour mémoire : `POST /api/hello` n'existe plus.
 
 1. Lancer l'application avec `dapr run` (voir plus haut).
 2. `curl -X POST http://localhost:8080/api/hello`. Les journaux affichent « Bonjour » et l'identifiant

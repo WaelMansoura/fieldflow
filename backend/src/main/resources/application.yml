@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: fieldflow
+  config:
+    # Secrets lus depuis le fichier .env à la racine du dépôt (principe VI).
+    import: optional:file:../.env[.properties]
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 8080
+
+fieldflow:
+  consultation:
+    delai: 60s

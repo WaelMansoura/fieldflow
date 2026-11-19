@@ -123,6 +123,12 @@ les points qu'ils laissent ouverts et note ce qui doit être confirmé par le he
   reconnecte tout seul après un redémarrage et le navigateur recharge sa vue (principe I respecté).
 - **Alternatives considered**: Rafraîchissement seul toutes les 2 s : simple, mais à la limite de
   FR-027. Il est gardé comme repli. WebSocket : bidirectionnel, inutile ici.
+- **Constaté au scénario B (2026-11-19)** : quand le back-end s'arrête, le proxy Vite garde ouverte la
+  connexion SSE du navigateur, qui ne reçoit aucune erreur. Il n'y a donc ni repli ni reconnexion. Une
+  nouvelle connexion qui reçoit une erreur 500 est fermée définitivement par `EventSource`.
+  Correction : le serveur envoie un battement `ping` toutes les 5 s. Le client, faute de message
+  pendant 8 s ou en cas d'erreur, passe en repli (2 s), affiche « Connexion perdue », puis recrée
+  l'`EventSource`.
 - **À vérifier au hello world**: que `dapr-spring-boot-starter` 1.18 expose bien `/dapr/subscribe`
   pour les méthodes annotées `@Topic`. Sinon, utiliser un fichier d'abonnement déclaratif passé à
   `dapr run --resources-path`.
@@ -191,4 +197,16 @@ les points qu'ils laissent ouverts et note ce qui doit être confirmé par le he
 | Version du runtime Dapr compatible avec le SDK 1.18 | `dapr --version`, démarrage sans erreur gRPC | Aligner le runtime sur la matrice de compatibilité du SDK |
 | `createTimer(ZonedDateTime)` disponible | Compilation | `createTimer(Duration.between(now, echeance))` |
 | Timer échu pendant l'arrêt déclenché au redémarrage | Scénario R-14 | Bloquant : revoir l'installation (service scheduler de `dapr init`) |
+
+**Résultats (2026-11-19, T009)** :
+
+- Runtime Dapr 1.19.2 (CLI 1.19.1) avec le SDK 1.18.2 : démarrage sans erreur ✅
+- `createTimer(ZonedDateTime)` présent dans `WorkflowContext` (javap) ✅
+- Scénario R-14 ✅ :
+  - « Bonjour » à 13:07:58 ;
+  - arrêt à 13:08:10 ;
+  - échéance du timer vers 13:08:28 ;
+  - relance à 13:08:44 ;
+  - « Au revoir » une seule fois à 13:08:54, et « Bonjour » non rejoué.
+- Les activités sont nommées par `@ActivityMetadata(name = …)`, sans quoi elles prendraient le nom de leur classe.
 | `/dapr/subscribe` exposé pour `@Topic` | `curl localhost:8080/dapr/subscribe` | Abonnement déclaratif YAML |
